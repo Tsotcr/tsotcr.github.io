@@ -1,0 +1,302 @@
+<!doctype html>
+<html>
+<head>
+<meta charset='UTF-8'><meta name='viewport' content='width=device-width initial-scale=1'>
+<title>中间件漏洞总结报告</title><style type='text/css'>html {overflow-x: initial !important;}:root { --bg-color:#ffffff; --text-color:#333333; --select-text-bg-color:#B5D6FC; --select-text-font-color:auto; --monospace:"Lucida Console",Consolas,"Courier",monospace; }
+html { font-size: 14px; background-color: var(--bg-color); color: var(--text-color); font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; }
+body { margin: 0px; padding: 0px; height: auto; bottom: 0px; top: 0px; left: 0px; right: 0px; font-size: 1rem; line-height: 1.42857; overflow-x: hidden; background: inherit; tab-size: 4; }
+iframe { margin: auto; }
+a.url { word-break: break-all; }
+a:active, a:hover { outline: 0px; }
+.in-text-selection, ::selection { text-shadow: none; background: var(--select-text-bg-color); color: var(--select-text-font-color); }
+#write { margin: 0px auto; height: auto; width: inherit; word-break: normal; overflow-wrap: break-word; position: relative; white-space: normal; overflow-x: visible; padding-top: 40px; }
+#write.first-line-indent p { text-indent: 2em; }
+#write.first-line-indent li p, #write.first-line-indent p * { text-indent: 0px; }
+#write.first-line-indent li { margin-left: 2em; }
+.for-image #write { padding-left: 8px; padding-right: 8px; }
+body.typora-export { padding-left: 30px; padding-right: 30px; }
+.typora-export .footnote-line, .typora-export li, .typora-export p { white-space: pre-wrap; }
+@media screen and (max-width: 500px) {
+  body.typora-export { padding-left: 0px; padding-right: 0px; }
+  #write { padding-left: 20px; padding-right: 20px; }
+  .CodeMirror-sizer { margin-left: 0px !important; }
+  .CodeMirror-gutters { display: none !important; }
+}
+#write li > figure:last-child { margin-bottom: 0.5rem; }
+#write ol, #write ul { position: relative; }
+img { max-width: 100%; vertical-align: middle; }
+button, input, select, textarea { color: inherit; font: inherit; }
+input[type="checkbox"], input[type="radio"] { line-height: normal; padding: 0px; }
+*, ::after, ::before { box-sizing: border-box; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p, #write pre { width: inherit; }
+#write h1, #write h2, #write h3, #write h4, #write h5, #write h6, #write p { position: relative; }
+p { line-height: inherit; }
+h1, h2, h3, h4, h5, h6 { break-after: avoid-page; break-inside: avoid; orphans: 2; }
+p { orphans: 4; }
+h1 { font-size: 2rem; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.6rem; }
+h4 { font-size: 1.4rem; }
+h5 { font-size: 1.2rem; }
+h6 { font-size: 1rem; }
+.md-math-block, .md-rawblock, h1, h2, h3, h4, h5, h6, p { margin-top: 1rem; margin-bottom: 1rem; }
+.hidden { display: none; }
+.md-blockmeta { color: rgb(204, 204, 204); font-weight: 700; font-style: italic; }
+a { cursor: pointer; }
+sup.md-footnote { padding: 2px 4px; background-color: rgba(238, 238, 238, 0.7); color: rgb(85, 85, 85); border-radius: 4px; cursor: pointer; }
+sup.md-footnote a, sup.md-footnote a:hover { color: inherit; text-transform: inherit; text-decoration: inherit; }
+#write input[type="checkbox"] { cursor: pointer; width: inherit; height: inherit; }
+figure { overflow-x: auto; margin: 1.2em 0px; max-width: calc(100% + 16px); padding: 0px; }
+figure > table { margin: 0px !important; }
+tr { break-inside: avoid; break-after: auto; }
+thead { display: table-header-group; }
+table { border-collapse: collapse; border-spacing: 0px; width: 100%; overflow: auto; break-inside: auto; text-align: left; }
+table.md-table td { min-width: 32px; }
+.CodeMirror-gutters { border-right: 0px; background-color: inherit; }
+.CodeMirror-linenumber { user-select: none; }
+.CodeMirror { text-align: left; }
+.CodeMirror-placeholder { opacity: 0.3; }
+.CodeMirror pre { padding: 0px 4px; }
+.CodeMirror-lines { padding: 0px; }
+div.hr:focus { cursor: none; }
+#write pre { white-space: pre-wrap; }
+#write.fences-no-line-wrapping pre { white-space: pre; }
+#write pre.ty-contain-cm { white-space: normal; }
+.CodeMirror-gutters { margin-right: 4px; }
+.md-fences { font-size: 0.9rem; display: block; break-inside: avoid; text-align: left; overflow: visible; white-space: pre; background: inherit; position: relative !important; }
+.md-diagram-panel { width: 100%; margin-top: 10px; text-align: center; padding-top: 0px; padding-bottom: 8px; overflow-x: auto; }
+#write .md-fences.mock-cm { white-space: pre-wrap; }
+.md-fences.md-fences-with-lineno { padding-left: 0px; }
+#write.fences-no-line-wrapping .md-fences.mock-cm { white-space: pre; overflow-x: auto; }
+.md-fences.mock-cm.md-fences-with-lineno { padding-left: 8px; }
+.CodeMirror-line, twitterwidget { break-inside: avoid; }
+.footnotes { opacity: 0.8; font-size: 0.9rem; margin-top: 1em; margin-bottom: 1em; }
+.footnotes + .footnotes { margin-top: 0px; }
+.md-reset { margin: 0px; padding: 0px; border: 0px; outline: 0px; vertical-align: top; background: 0px 0px; text-decoration: none; text-shadow: none; float: none; position: static; width: auto; height: auto; white-space: nowrap; cursor: inherit; -webkit-tap-highlight-color: transparent; line-height: normal; font-weight: 400; text-align: left; box-sizing: content-box; direction: ltr; }
+li div { padding-top: 0px; }
+blockquote { margin: 1rem 0px; }
+li .mathjax-block, li p { margin: 0.5rem 0px; }
+li { margin: 0px; position: relative; }
+blockquote > :last-child { margin-bottom: 0px; }
+blockquote > :first-child, li > :first-child { margin-top: 0px; }
+.footnotes-area { color: rgb(136, 136, 136); margin-top: 0.714rem; padding-bottom: 0.143rem; white-space: normal; }
+#write .footnote-line { white-space: pre-wrap; }
+@media print {
+  body, html { border: 1px solid transparent; height: 99%; break-after: avoid; break-before: avoid; }
+  #write { margin-top: 0px; padding-top: 0px; border-color: transparent !important; }
+  .typora-export * { -webkit-print-color-adjust: exact; }
+  html.blink-to-pdf { font-size: 13px; }
+  .typora-export #write { padding-left: 32px; padding-right: 32px; padding-bottom: 0px; break-after: avoid; }
+  .typora-export #write::after { height: 0px; }
+}
+.footnote-line { margin-top: 0.714em; font-size: 0.7em; }
+a img, img a { cursor: pointer; }
+pre.md-meta-block { font-size: 0.8rem; min-height: 0.8rem; white-space: pre-wrap; background: rgb(204, 204, 204); display: block; overflow-x: hidden; }
+p > .md-image:only-child:not(.md-img-error) img, p > img:only-child { display: block; margin: auto; }
+p > .md-image:only-child { display: inline-block; width: 100%; }
+#write .MathJax_Display { margin: 0.8em 0px 0px; }
+.md-math-block { width: 100%; }
+.md-math-block:not(:empty)::after { display: none; }
+[contenteditable="true"]:active, [contenteditable="true"]:focus { outline: 0px; box-shadow: none; }
+.md-task-list-item { position: relative; list-style-type: none; }
+.task-list-item.md-task-list-item { padding-left: 0px; }
+.md-task-list-item > input { position: absolute; top: 0px; left: 0px; margin-left: -1.2em; margin-top: calc(1em - 10px); border: none; }
+.math { font-size: 1rem; }
+.md-toc { min-height: 3.58rem; position: relative; font-size: 0.9rem; border-radius: 10px; }
+.md-toc-content { position: relative; margin-left: 0px; }
+.md-toc-content::after, .md-toc::after { display: none; }
+.md-toc-item { display: block; color: rgb(65, 131, 196); }
+.md-toc-item a { text-decoration: none; }
+.md-toc-inner:hover { text-decoration: underline; }
+.md-toc-inner { display: inline-block; cursor: pointer; }
+.md-toc-h1 .md-toc-inner { margin-left: 0px; font-weight: 700; }
+.md-toc-h2 .md-toc-inner { margin-left: 2em; }
+.md-toc-h3 .md-toc-inner { margin-left: 4em; }
+.md-toc-h4 .md-toc-inner { margin-left: 6em; }
+.md-toc-h5 .md-toc-inner { margin-left: 8em; }
+.md-toc-h6 .md-toc-inner { margin-left: 10em; }
+@media screen and (max-width: 48em) {
+  .md-toc-h3 .md-toc-inner { margin-left: 3.5em; }
+  .md-toc-h4 .md-toc-inner { margin-left: 5em; }
+  .md-toc-h5 .md-toc-inner { margin-left: 6.5em; }
+  .md-toc-h6 .md-toc-inner { margin-left: 8em; }
+}
+a.md-toc-inner { font-size: inherit; font-style: inherit; font-weight: inherit; line-height: inherit; }
+.footnote-line a:not(.reversefootnote) { color: inherit; }
+.md-attr { display: none; }
+.md-fn-count::after { content: "."; }
+code, pre, samp, tt { font-family: var(--monospace); }
+kbd { margin: 0px 0.1em; padding: 0.1em 0.6em; font-size: 0.8em; color: rgb(36, 39, 41); background: rgb(255, 255, 255); border: 1px solid rgb(173, 179, 185); border-radius: 3px; box-shadow: rgba(12, 13, 14, 0.2) 0px 1px 0px, rgb(255, 255, 255) 0px 0px 0px 2px inset; white-space: nowrap; vertical-align: middle; }
+.md-comment { color: rgb(162, 127, 3); opacity: 0.8; font-family: var(--monospace); }
+code { text-align: left; vertical-align: initial; }
+a.md-print-anchor { white-space: pre !important; border-width: initial !important; border-style: none !important; border-color: initial !important; display: inline-block !important; position: absolute !important; width: 1px !important; right: 0px !important; outline: 0px !important; background: 0px 0px !important; text-decoration: initial !important; text-shadow: initial !important; }
+.md-inline-math .MathJax_SVG .noError { display: none !important; }
+.html-for-mac .inline-math-svg .MathJax_SVG { vertical-align: 0.2px; }
+.md-math-block .MathJax_SVG_Display { text-align: center; margin: 0px; position: relative; text-indent: 0px; max-width: none; max-height: none; min-height: 0px; min-width: 100%; width: auto; overflow-y: hidden; display: block !important; }
+.MathJax_SVG_Display, .md-inline-math .MathJax_SVG_Display { width: auto; margin: inherit; display: inline-block !important; }
+.MathJax_SVG .MJX-monospace { font-family: var(--monospace); }
+.MathJax_SVG .MJX-sans-serif { font-family: sans-serif; }
+.MathJax_SVG { display: inline; font-style: normal; font-weight: 400; line-height: normal; zoom: 90%; text-indent: 0px; text-align: left; text-transform: none; letter-spacing: normal; word-spacing: normal; overflow-wrap: normal; white-space: nowrap; float: none; direction: ltr; max-width: none; max-height: none; min-width: 0px; min-height: 0px; border: 0px; padding: 0px; margin: 0px; }
+.MathJax_SVG * { transition: none 0s ease 0s; }
+.MathJax_SVG_Display svg { vertical-align: middle !important; margin-bottom: 0px !important; margin-top: 0px !important; }
+.os-windows.monocolor-emoji .md-emoji { font-family: "Segoe UI Symbol", sans-serif; }
+.md-diagram-panel > svg { max-width: 100%; }
+[lang="mermaid"] svg, [lang="flow"] svg { max-width: 100%; height: auto; }
+[lang="mermaid"] .node text { font-size: 1rem; }
+table tr th { border-bottom: 0px; }
+video { max-width: 100%; display: block; margin: 0px auto; }
+iframe { max-width: 100%; width: 100%; border: none; }
+.highlight td, .highlight tr { border: 0px; }
+
+
+.CodeMirror { height: auto; }
+.CodeMirror.cm-s-inner { background: inherit; }
+.CodeMirror-scroll { overflow: auto hidden; z-index: 3; }
+.CodeMirror-gutter-filler, .CodeMirror-scrollbar-filler { background-color: rgb(255, 255, 255); }
+.CodeMirror-gutters { border-right: 1px solid rgb(221, 221, 221); background: inherit; white-space: nowrap; }
+.CodeMirror-linenumber { padding: 0px 3px 0px 5px; text-align: right; color: rgb(153, 153, 153); }
+.cm-s-inner .cm-keyword { color: rgb(119, 0, 136); }
+.cm-s-inner .cm-atom, .cm-s-inner.cm-atom { color: rgb(34, 17, 153); }
+.cm-s-inner .cm-number { color: rgb(17, 102, 68); }
+.cm-s-inner .cm-def { color: rgb(0, 0, 255); }
+.cm-s-inner .cm-variable { color: rgb(0, 0, 0); }
+.cm-s-inner .cm-variable-2 { color: rgb(0, 85, 170); }
+.cm-s-inner .cm-variable-3 { color: rgb(0, 136, 85); }
+.cm-s-inner .cm-string { color: rgb(170, 17, 17); }
+.cm-s-inner .cm-property { color: rgb(0, 0, 0); }
+.cm-s-inner .cm-operator { color: rgb(152, 26, 26); }
+.cm-s-inner .cm-comment, .cm-s-inner.cm-comment { color: rgb(170, 85, 0); }
+.cm-s-inner .cm-string-2 { color: rgb(255, 85, 0); }
+.cm-s-inner .cm-meta { color: rgb(85, 85, 85); }
+.cm-s-inner .cm-qualifier { color: rgb(85, 85, 85); }
+.cm-s-inner .cm-builtin { color: rgb(51, 0, 170); }
+.cm-s-inner .cm-bracket { color: rgb(153, 153, 119); }
+.cm-s-inner .cm-tag { color: rgb(17, 119, 0); }
+.cm-s-inner .cm-attribute { color: rgb(0, 0, 204); }
+.cm-s-inner .cm-header, .cm-s-inner.cm-header { color: rgb(0, 0, 255); }
+.cm-s-inner .cm-quote, .cm-s-inner.cm-quote { color: rgb(0, 153, 0); }
+.cm-s-inner .cm-hr, .cm-s-inner.cm-hr { color: rgb(153, 153, 153); }
+.cm-s-inner .cm-link, .cm-s-inner.cm-link { color: rgb(0, 0, 204); }
+.cm-negative { color: rgb(221, 68, 68); }
+.cm-positive { color: rgb(34, 153, 34); }
+.cm-header, .cm-strong { font-weight: 700; }
+.cm-del { text-decoration: line-through; }
+.cm-em { font-style: italic; }
+.cm-link { text-decoration: underline; }
+.cm-error { color: red; }
+.cm-invalidchar { color: red; }
+.cm-constant { color: rgb(38, 139, 210); }
+.cm-defined { color: rgb(181, 137, 0); }
+div.CodeMirror span.CodeMirror-matchingbracket { color: rgb(0, 255, 0); }
+div.CodeMirror span.CodeMirror-nonmatchingbracket { color: rgb(255, 34, 34); }
+.cm-s-inner .CodeMirror-activeline-background { background: inherit; }
+.CodeMirror { position: relative; overflow: hidden; }
+.CodeMirror-scroll { height: 100%; outline: 0px; position: relative; box-sizing: content-box; background: inherit; }
+.CodeMirror-sizer { position: relative; }
+.CodeMirror-gutter-filler, .CodeMirror-hscrollbar, .CodeMirror-scrollbar-filler, .CodeMirror-vscrollbar { position: absolute; z-index: 6; display: none; }
+.CodeMirror-vscrollbar { right: 0px; top: 0px; overflow: hidden; }
+.CodeMirror-hscrollbar { bottom: 0px; left: 0px; overflow: hidden; }
+.CodeMirror-scrollbar-filler { right: 0px; bottom: 0px; }
+.CodeMirror-gutter-filler { left: 0px; bottom: 0px; }
+.CodeMirror-gutters { position: absolute; left: 0px; top: 0px; padding-bottom: 30px; z-index: 3; }
+.CodeMirror-gutter { white-space: normal; height: 100%; box-sizing: content-box; padding-bottom: 30px; margin-bottom: -32px; display: inline-block; }
+.CodeMirror-gutter-wrapper { position: absolute; z-index: 4; background: 0px 0px !important; border: none !important; }
+.CodeMirror-gutter-background { position: absolute; top: 0px; bottom: 0px; z-index: 4; }
+.CodeMirror-gutter-elt { position: absolute; cursor: default; z-index: 4; }
+.CodeMirror-lines { cursor: text; }
+.CodeMirror pre { border-radius: 0px; border-width: 0px; background: 0px 0px; font-family: inherit; font-size: inherit; margin: 0px; white-space: pre; overflow-wrap: normal; color: inherit; z-index: 2; position: relative; overflow: visible; }
+.CodeMirror-wrap pre { overflow-wrap: break-word; white-space: pre-wrap; word-break: normal; }
+.CodeMirror-code pre { border-right: 30px solid transparent; width: fit-content; }
+.CodeMirror-wrap .CodeMirror-code pre { border-right: none; width: auto; }
+.CodeMirror-linebackground { position: absolute; left: 0px; right: 0px; top: 0px; bottom: 0px; z-index: 0; }
+.CodeMirror-linewidget { position: relative; z-index: 2; overflow: auto; }
+.CodeMirror-wrap .CodeMirror-scroll { overflow-x: hidden; }
+.CodeMirror-measure { position: absolute; width: 100%; height: 0px; overflow: hidden; visibility: hidden; }
+.CodeMirror-measure pre { position: static; }
+.CodeMirror div.CodeMirror-cursor { position: absolute; visibility: hidden; border-right: none; width: 0px; }
+.CodeMirror div.CodeMirror-cursor { visibility: hidden; }
+.CodeMirror-focused div.CodeMirror-cursor { visibility: inherit; }
+.cm-searching { background: rgba(255, 255, 0, 0.4); }
+@media print {
+  .CodeMirror div.CodeMirror-cursor { visibility: hidden; }
+}
+
+
+:root { --side-bar-bg-color: #fafafa; --control-text-color: #777; }
+html { font-size: 16px; }
+body { font-family: "Open Sans", "Clear Sans", "Helvetica Neue", Helvetica, Arial, sans-serif; color: rgb(51, 51, 51); line-height: 1.6; }
+#write { max-width: 860px; margin: 0px auto; padding: 30px 30px 100px; }
+#write > ul:first-child, #write > ol:first-child { margin-top: 30px; }
+a { color: rgb(65, 131, 196); }
+h1, h2, h3, h4, h5, h6 { position: relative; margin-top: 1rem; margin-bottom: 1rem; font-weight: bold; line-height: 1.4; cursor: text; }
+h1:hover a.anchor, h2:hover a.anchor, h3:hover a.anchor, h4:hover a.anchor, h5:hover a.anchor, h6:hover a.anchor { text-decoration: none; }
+h1 tt, h1 code { font-size: inherit; }
+h2 tt, h2 code { font-size: inherit; }
+h3 tt, h3 code { font-size: inherit; }
+h4 tt, h4 code { font-size: inherit; }
+h5 tt, h5 code { font-size: inherit; }
+h6 tt, h6 code { font-size: inherit; }
+h1 { padding-bottom: 0.3em; font-size: 2.25em; line-height: 1.2; border-bottom: 1px solid rgb(238, 238, 238); }
+h2 { padding-bottom: 0.3em; font-size: 1.75em; line-height: 1.225; border-bottom: 1px solid rgb(238, 238, 238); }
+h3 { font-size: 1.5em; line-height: 1.43; }
+h4 { font-size: 1.25em; }
+h5 { font-size: 1em; }
+h6 { font-size: 1em; color: rgb(119, 119, 119); }
+p, blockquote, ul, ol, dl, table { margin: 0.8em 0px; }
+li > ol, li > ul { margin: 0px; }
+hr { height: 2px; padding: 0px; margin: 16px 0px; background-color: rgb(231, 231, 231); border: 0px none; overflow: hidden; box-sizing: content-box; }
+li p.first { display: inline-block; }
+ul, ol { padding-left: 30px; }
+ul:first-child, ol:first-child { margin-top: 0px; }
+ul:last-child, ol:last-child { margin-bottom: 0px; }
+blockquote { border-left: 4px solid rgb(223, 226, 229); padding: 0px 15px; color: rgb(119, 119, 119); }
+blockquote blockquote { padding-right: 0px; }
+table { padding: 0px; word-break: initial; }
+table tr { border-top: 1px solid rgb(223, 226, 229); margin: 0px; padding: 0px; }
+table tr:nth-child(2n), thead { background-color: rgb(248, 248, 248); }
+table tr th { font-weight: bold; border-width: 1px 1px 0px; border-top-style: solid; border-right-style: solid; border-left-style: solid; border-top-color: rgb(223, 226, 229); border-right-color: rgb(223, 226, 229); border-left-color: rgb(223, 226, 229); border-image: initial; border-bottom-style: initial; border-bottom-color: initial; text-align: left; margin: 0px; padding: 6px 13px; }
+table tr td { border: 1px solid rgb(223, 226, 229); text-align: left; margin: 0px; padding: 6px 13px; }
+table tr th:first-child, table tr td:first-child { margin-top: 0px; }
+table tr th:last-child, table tr td:last-child { margin-bottom: 0px; }
+.CodeMirror-lines { padding-left: 4px; }
+.code-tooltip { box-shadow: rgba(0, 28, 36, 0.3) 0px 1px 1px 0px; border-top: 1px solid rgb(238, 242, 242); }
+.md-fences, code, tt { border: 1px solid rgb(231, 234, 237); background-color: rgb(248, 248, 248); border-radius: 3px; padding: 2px 4px 0px; font-size: 0.9em; }
+code { background-color: rgb(243, 244, 244); padding: 0px 2px; }
+.md-fences { margin-bottom: 15px; margin-top: 15px; padding-top: 8px; padding-bottom: 6px; }
+.md-task-list-item > input { margin-left: -1.3em; }
+@media print {
+  html { font-size: 13px; }
+  table, pre { break-inside: avoid; }
+  pre { overflow-wrap: break-word; }
+}
+.md-fences { background-color: rgb(248, 248, 248); }
+#write pre.md-meta-block { padding: 1rem; font-size: 85%; line-height: 1.45; background-color: rgb(247, 247, 247); border: 0px; border-radius: 3px; color: rgb(119, 119, 119); margin-top: 0px !important; }
+.mathjax-block > .code-tooltip { bottom: 0.375rem; }
+.md-mathjax-midline { background: rgb(250, 250, 250); }
+#write > h3.md-focus::before { left: -1.5625rem; top: 0.375rem; }
+#write > h4.md-focus::before { left: -1.5625rem; top: 0.285714rem; }
+#write > h5.md-focus::before { left: -1.5625rem; top: 0.285714rem; }
+#write > h6.md-focus::before { left: -1.5625rem; top: 0.285714rem; }
+.md-image > .md-meta { border-radius: 3px; padding: 2px 0px 0px 4px; font-size: 0.9em; color: inherit; }
+.md-tag { color: rgb(167, 167, 167); opacity: 1; }
+.md-toc { margin-top: 20px; padding-bottom: 20px; }
+.sidebar-tabs { border-bottom: none; }
+#typora-quick-open { border: 1px solid rgb(221, 221, 221); background-color: rgb(248, 248, 248); }
+#typora-quick-open-item { background-color: rgb(250, 250, 250); border-color: rgb(254, 254, 254) rgb(229, 229, 229) rgb(229, 229, 229) rgb(238, 238, 238); border-style: solid; border-width: 1px; }
+.on-focus-mode blockquote { border-left-color: rgba(85, 85, 85, 0.12); }
+header, .context-menu, .megamenu-content, footer { font-family: "Segoe UI", Arial, sans-serif; }
+.file-node-content:hover .file-node-icon, .file-node-content:hover .file-node-open-state { visibility: visible; }
+.mac-seamless-mode #typora-sidebar { background-color: var(--side-bar-bg-color); }
+.md-lang { color: rgb(180, 101, 77); }
+.html-for-mac .context-menu { --item-hover-bg-color: #E6F0FE; }
+#md-notification .btn { border: 0px; }
+.dropdown-menu .divider { border-color: rgb(229, 229, 229); }
+
+
+</style>
+</head>
+<body class='typora-export os-windows' >
+<div  id='write'  class = 'is-node'><p><span>中间件漏洞总结报告</span></p><blockquote><p><span>常见的web中间件漏洞总结 </span><a href='https://greyhat.top/a5d20e8f6c25c82b.html#more' target='_blank' class='url'>https://greyhat.top/a5d20e8f6c25c82b.html#more</a></p><p>&nbsp;</p></blockquote><h2><a name="1-iis" class="md-header-anchor"></a><span>1 IIS</span></h2><p><span>	</span><span>IIS（互联网信息服务）是Internet Information Services的缩写，是由微软公司提供的基于运行Microsoft Windows的互联网基本服务。最初是Windows NT版本的可选包，随后内置在Windows 2000、Windows XP Professional和Windows Server 2003一起发行，但在Windows XP Home版本上并没有IIS。IIS是一种Web（网页）服务组件，其中包括Web服务器、FTP服务器、NNTP服务器和SMTP服务器，分别用于网页浏览、文件传输、新闻服务和邮件发送等方面，它使得在网络（包括互联网和局域网）上发布信息成了一件很容易的事。</span></p><p><span>	</span><span>IIS的安全脆弱性曾长时间被业内诟病，一旦IIS出现远程执行漏洞威胁将会非常严重。远程执行代码漏洞存在于 HTTP 协议堆栈 (HTTP.sys) 中，当 HTTP.sys 未正确分析经特殊设计的 HTTP 请求时会导致此漏洞。 成功利用此漏洞的攻击者可以在系统帐户的上下文中执行任意代码，可以导致IIS服务器所在机器蓝屏或读取其内存中的机密数据。</span></p><h3><a name="1.1-iis6.0-%E7%9F%AD%E6%96%87%E4%BB%B6%E5%90%8D%E7%8C%9C%E8%A7%A3" class="md-header-anchor"></a><span>1.1 IIS6.0 短文件名猜解</span></h3><p><strong><span>成因</span></strong></p><p><span>	</span><span>为了兼容16位MS-DOS程序，Windows为文件名较长的文件（和文件夹）生成了对应的windows 8.3 短文件名。 在Windows下查看对应的短文件名，可以使用命令</span><code>dir /x</code><span>。</span></p><p><span>	</span><span>只有前六位字符直接显示，后续字符用~1指代。其中数字1还可以递增，如果存在多个文件名类似的文件（名称前6位必须相同，且后缀名前3位必须相同）。后缀名最长只有3位，多余的被截断。</span></p><p><img src='assets/1-1.png' alt='1563685145586' referrerPolicy='no-referrer' /></p><p><strong><span>复现</span></strong></p><ol start='' ><li><p><span>创建</span><code>aaaaaaaaa.html</code><span>文件</span></p></li><li><p><span>猜解过程描述：</span></p><p><span>检查工具：</span><a href='https://github.com/lijiejie/IIS_shortname_Scanner' target='_blank' class='url'>https://github.com/lijiejie/IIS_shortname_Scanner</a></p><pre spellcheck="false" class="md-fences md-end-block ty-contain-cm modeLoaded" lang=""><div class="CodeMirror cm-s-inner CodeMirror-wrap" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 0px; left: 8px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"><span><span>​</span>x</span></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation" style=""><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">http://x.x.x.x/A*~1****/a.aspx<span class="cm-tab" role="presentation" cm-text="	">  </span><span class="cm-tab" role="presentation" cm-text="	">    </span>404</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">http://x.x.x.x/B*~1****/a.aspx<span class="cm-tab" role="presentation" cm-text="	">  </span><span class="cm-tab" role="presentation" cm-text="	">    </span>400</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">http://x.x.x.x/AAAAAA~1****/a.aspx<span class="cm-tab" role="presentation" cm-text="	">  </span><span class="cm-tab" role="presentation" cm-text="	">    </span>404</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">http://x.x.x.x/AAAAAA~1/a.aspx（判断是否是文件夹）<span class="cm-tab" role="presentation" cm-text="	">    </span>配置不可查看</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">http://x.x.x.x/AAAAAAA~1*A**/a.aspx<span class="cm-tab" role="presentation" cm-text="	"> </span><span class="cm-tab" role="presentation" cm-text="	">    </span>400</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">http://x.x.x.x/AAAAAAA~1*H**/a.aspx<span class="cm-tab" role="presentation" cm-text="	"> </span><span class="cm-tab" role="presentation" cm-text="	">    </span>404</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">http://x.x.x.x/AAAAAA~1.HTM/a.aspx<span class="cm-tab" role="presentation" cm-text="	">  </span><span class="cm-tab" role="presentation" cm-text="	">    </span>404</span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 299px;"></div><div class="CodeMirror-gutters" style="display: none; height: 299px;"></div></div></div></pre><p><span>访问构造的某个存在的短文件名，会返回404。</span></p><p><span>访问构造的某个不存在的短文件名，返回400。</span></p></li></ol><p><strong><span>修复</span></strong></p><ul><li><span>升级</span><code>.net framework</code></li><li><span>修改注册表：</span><code>HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\FileSystem</code><span>修改</span><code>NtfsDisable8dot3NameCreation</code><span>为1，重启，将web文件夹的内容拷贝到另一个位置，如c:\www到d:\w,然后删除原文件夹，再重命名d:\w到c:\www</span></li><li><span>CMD关闭NTFS 8.3文件格式的支持</span></li></ul><p><strong><span>局限</span></strong></p><ul><li><span>此漏洞只能确定前6个字符，如果后面的字符太长、包含特殊字符，很难猜解；</span></li><li><span>如果文件名本身太短（无短文件名）也是无法猜解的；</span></li><li><span>如果文件名前6位带空格，8.3格式的短文件名会补进，和真实文件名不匹配；</span></li></ul><h3><a name="1.2-iis6.0-put%E6%BC%8F%E6%B4%9E" class="md-header-anchor"></a><span>1.2 IIS6.0 PUT漏洞</span></h3><p><strong><span>成因</span></strong></p><p><span>	</span><span>IIS Server 在 Web 服务扩展中开启了 WebDAV ，配置了可以写入的权限，造成任意文件上传。版本： IIS6.0</span></p><p><span>	</span><span>WebDAV是一种基于 HTTP 1.1协议的通信协议，它扩展了HTTP 1.1，在GET、POST、HEAD等几个HTTP标准方法以外添加了一些新的方法（PROPFIND、PROPPATCH、MKCOL、DELETE、PUT、COPY、MOVE、LOCK、UNLOCK等）。使应用程序可直接对Web Server直接读写，并支持写文件锁定(Locking)及解锁(Unlock)，还可以支持文件的版本控制。</span></p><p><span>	</span><span>IIS实现WebDAV是采用它的两种接口：CGI、ISAPI的ISAPI接口。</span></p><p><strong><span>复现</span></strong></p><ul><li><span>前提：开启WebDAV 、写入权限、脚本资源访问</span><img src='assets/1-21.png' alt='1-21' referrerPolicy='no-referrer' /></li></ul><p><img src='assets/1-22.png' alt='1-22' referrerPolicy='no-referrer' /></p><ul><li><span>将GET请求改为OPTIONS，可以查看服务器信息。（启用了“WebDAV”扩展）</span></li></ul><p><img src='assets/1-23.png' alt='1-23' referrerPolicy='no-referrer' /></p><ul><li><span>此时可以用PUT上传文件，但是不可以直接上传可执行脚本文件。（启用了“WebDAV”扩展，并且复选了“写入”）</span></li></ul><p><img src='assets/1-24.png' alt='1-24' referrerPolicy='no-referrer' /></p><p><img src='assets/1-25.png' alt='1-25' referrerPolicy='no-referrer' /></p><ul><li><span>使用</span><code>MOVE/COPY</code><span>命令将其更名为脚本文件后缀。（启用了“WebDAV”扩展，并且复选了“脚本资源访问”`）</span></li></ul><p><img src='assets/1-26.png' alt='1-26' referrerPolicy='no-referrer' /></p><ul><li><span>否则需要利用IIS的解析漏洞，使用</span><code>MOVE/COPY</code><span>修改成</span><code>1.asp;.txt</code></li></ul><p><img src='assets/1-27.png' alt='1-27' referrerPolicy='no-referrer' /></p><p><strong><span>修复</span></strong></p><ul><li><span>关闭WebDAV 、写入权限、脚本资源访问</span></li></ul><h3><a name="1.3-iis6.0-%E8%A7%A3%E6%9E%90%E6%BC%8F%E6%B4%9E" class="md-header-anchor"></a><span>1.3 IIS6.0 解析漏洞</span></h3><p><span>漏洞原因：IIS 6.0 在处理含有特殊符号的文件路径时会出现逻辑错误，从而造成文件解析漏洞。</span></p><pre spellcheck="false" class="md-fences md-end-block ty-contain-cm modeLoaded" lang=""><div class="CodeMirror cm-s-inner CodeMirror-wrap" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 0px; left: 8px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"><pre><span>xxxxxxxxxx</span></pre></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation"><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">/test.asp/test.jpg</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"><span cm-text="">​</span></span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">test.asp;.jpg</span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 69px;"></div><div class="CodeMirror-gutters" style="display: none; height: 69px;"></div></div></div></pre><p><span>漏洞利用：新建一个名为</span><code>test.asp</code><span>的目录，该目录下的任何文件都作为</span><code>asp</code><span>程序执行（特殊符号是</span><code>/</code><span>)；上传名为</span><code>test.asp;.jpg</code><span>的文件，虽然该文件真正的后缀名是</span><code>.jpg</code><span>,但由于含有特殊符号</span><code>;</code><span>，仍然会被</span><code>IIS</code><span>作为</span><code>asp</code><span>程序执行。</span></p><p><span>漏洞修复：做好权限设置,限制用户创建文件夹。可以通过自己编写正则,阻止上传</span><code>xx.asp;.jpg</code><span>等类型的文件名。使用</span><code>waf</code><span>。</span></p><h3><a name="1.4-iis7.0/7.5-%E6%96%87%E4%BB%B6%E8%A7%A3%E6%9E%90%E6%BC%8F%E6%B4%9E" class="md-header-anchor"></a><span>1.4 IIS7.0/7.5 文件解析漏洞</span></h3><blockquote><p><span>iis7或7.5对文件名畸形解析导致远程代码执行 </span><a href='https://www.freebuf.com/column/198080.html' target='_blank' class='url'>https://www.freebuf.com/column/198080.html</a></p></blockquote><p><span>漏洞原因：URL 中文件后缀是</span><code>.php</code><span>，便无论该文件是否存在，都直接交给 </span><code>php</code><span> 处理，而 </span><code>php</code><span> 又默认开启 </span><code>cgi.fix_pathinfo</code><span>, 会对文件进行 “ 修理 ” ，可谓 “ 修理 ” ？举个例子，当 </span><code>php</code><span> 遇到路径 </span><code>/aaa.xxx/bbb.yyy</code><span> 时，若 </span><code>/aaa.xxx/bbb.yyy</code><span> 不存在，则会去掉最后的 </span><code>bbb.yyy</code><span>，然后判断</span><code>/aaa.xxx</code><span> 是否存在，若存在，则把 </span><code>/aaa.xxx</code><span>当作</span><code>yyy</code><span>格式的文件。</span></p><pre spellcheck="false" class="md-fences md-end-block ty-contain-cm modeLoaded" lang=""><div class="CodeMirror cm-s-inner CodeMirror-wrap" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 0px; left: 8px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"><pre><span>xxxxxxxxxx</span></pre></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation"><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">test.jpg/.php</span></pre></div></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 23px;"></div><div class="CodeMirror-gutters" style="display: none; height: 23px;"></div></div></div></pre><p><span>漏洞利用：若有文件 test.jpg ，访问时在其后加</span><code>/.php</code><span>，便可以把 “</span><code>test.jpg/.php</code><span>” 交给</span><code>php</code><span> ，</span><code>php</code><span>修理文件路径 “</span><code>test.jpg/.php</code><span>” 得到 ”test.jpg” ，该文件存在，便把该文件作为 </span><code>php</code><span> 程序执行了。</span></p><p><span>漏洞修复：</span></p><ul><li><span>对新建目录文件名进行过滤，不允许新建包含‘.’的文件</span></li><li><span>曲线网站后台新建目录的功能，不允许新建目录</span></li><li><span>限制上传的脚本执行权限，不允许执行脚本</span></li><li><span>过滤</span><code>.asp/xm.jpg</code><span>，通过</span><code>ISApi</code><span>组件过滤</span></li></ul><h2><a name="2-apache" class="md-header-anchor"></a><span>2 Apache</span></h2><p><span>	</span><span>Apache是世界使用排名第一的Web服务器软件。它可以运行在几乎所有广泛使用的计算机平台上，由于其跨平台和安全性被广泛使用，是最流行的Web服务器端软件之一。它快速、可靠并且可通过简单的API扩充，将Perl/Python等解释器编译到服务器中。</span></p><h3><a name="2.1-%E7%9B%AE%E5%BD%95%E9%81%8D%E5%8E%86" class="md-header-anchor"></a><span>2.1 目录遍历</span></h3><p><strong><span>成因</span></strong></p><ul><li><span>由于配置错误导致的目录遍历</span></li></ul><p><strong><span>修复</span></strong></p><ul><li><span>修改apache配置文件</span><code>httpd.conf</code></li></ul><ul><li><span>找到</span><code>Options+Indexes+FollowSymLinks +ExecCGI</code><span>并修改成</span><code>Options-Indexes+FollowSymLinks +ExecCGI</code><span>并保存</span></li></ul><h3><a name="2.2-%E8%A7%A3%E6%9E%90%E6%BC%8F%E6%B4%9E" class="md-header-anchor"></a><span>2.2 解析漏洞</span></h3><p><strong><span>成因</span></strong></p><p><span>	</span><span>Apache文件解析漏洞与用户的配置有密切关系，严格来说属于用户配置问题。</span></p><p><span>	</span><span>Apache文件解析漏洞涉及到一个解析文件的特性：</span></p><p><span>	</span><span>Apache默认一个文件可以有多个以点分隔的后缀，当右边的后缀无法识别（不在</span><code>mime.tyoes</code><span>内），则继续向左识别，当我们请求这样一个文件：</span><code>shell.xxx.yyy</code></p><p><strong><span>复现</span></strong></p><ul><li><span>上传文件</span></li></ul><p><img src='assets/2-21.png' alt='img' referrerPolicy='no-referrer' /></p><p><strong><span>修复</span></strong></p><ul><li><span>删除配置文件</span><code>AddHandler application/x-httpd-php .php</code></li></ul><h2><a name="3-nginx" class="md-header-anchor"></a><span>3 Nginx</span></h2><p><span>	</span><span>Nginx (engine x) 是一个高性能的HTTP和反向代理web服务器，同时也提供了IMAP/POP3/SMTP服务。Nginx是由伊戈尔·赛索耶夫为俄罗斯访问量第二的Rambler.ru站点（俄文：Рамблер）开发的，第一个公开版本0.1.0发布于2004年10月4日。</span></p><p><span>	</span><span>其将源代码以类BSD许可证的形式发布，因它的稳定性、丰富的功能集、示例配置文件和低系统资源的消耗而闻名。2011年6月1日，Nginx 1.0.4发布。</span></p><p><span>	</span><span>Nginx是一款轻量级的Web 服务器/反向代理服务器及电子邮件（IMAP/POP3）代理服务器，在BSD-like 协议下发行。其特点是占有内存少，并发能力强，事实上Nginx的并发能力确实在同类型的网页服务器中表现较好，中国大陆使用Nginx网站用户有：百度、京东、新浪、网易、腾讯、淘宝等。</span></p><p><span>	</span><span>Nginx配置文件：</span><code>/etc/nginx/conf.d/error1.conf</code></p><h3><a name="3.1-crlf%E6%B3%A8%E5%85%A5" class="md-header-anchor"></a><span>3.1 CRLF注入</span></h3><p><strong><span>成因</span></strong></p><ul><li><span>CRLF是“回车+换行”（\r\n）的简称。</span></li><li><span>HTTP Header与HTTP Body是用两个CRLF分割的，浏览器根据两个CRLF来取出HTTP内容并显示。通过控制HTTP消息头中的字符，注入一些恶意的换行，就能注入一些会话Cookie或者HTML代码。</span></li></ul><p><img src='assets/3-11.png' alt='3-11' referrerPolicy='no-referrer' /></p><p><strong><span>复现</span></strong></p><ul><li><span>路径：</span><code>vulhub-master/nginx/insecure-configuration</code></li></ul><p><img src='assets/3-12.png' alt='3-12' referrerPolicy='no-referrer' /></p><ul><li><p><span>会话固定</span></p><pre spellcheck="false" class="md-fences md-end-block ty-contain-cm modeLoaded" lang=""><div class="CodeMirror cm-s-inner CodeMirror-wrap" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 0px; left: 8px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"><pre><span>xxxxxxxxxx</span></pre></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation"><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">/%0aSet-cookie:JSPSESSID%3D1024</span></pre></div></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 23px;"></div><div class="CodeMirror-gutters" style="display: none; height: 23px;"></div></div></div></pre></li></ul><p><img src='assets/3-13.png' alt='3-13' referrerPolicy='no-referrer' /></p><ul><li><p><span>反射型XSS</span></p><pre spellcheck="false" class="md-fences md-end-block ty-contain-cm modeLoaded" lang=""><div class="CodeMirror cm-s-inner CodeMirror-wrap" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 0px; left: 8px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"><pre><span>xxxxxxxxxx</span></pre></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation"><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">/%0d%0a%0d%0a&lt;img src=1 onerror=alert(/xss/)&gt; </span></pre></div></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 23px;"></div><div class="CodeMirror-gutters" style="display: none; height: 23px;"></div></div></div></pre></li></ul><p><img src='assets/3-14.png' alt='3-14' referrerPolicy='no-referrer' /></p><p><strong><span>修复</span></strong></p><ul><li><span>使用不解码的URL跳转</span></li></ul><p><img src='assets/3-15.png' alt='3-15' referrerPolicy='no-referrer' /></p><ul><li><span>任何可以设置HTTP头的场景都会出现CRLF注入问题</span></li></ul><h3><a name="3.2-%E7%9B%AE%E5%BD%95%E7%A9%BF%E8%B6%8A" class="md-header-anchor"></a><span>3.2 目录穿越</span></h3><p><strong><span>成因</span></strong></p><p><span>	</span><span>Nginx反向代理，静态文件存储在/home/下，而访问时需要在</span><code>url</code><span>中输入files，配置文件中</span><code>/files</code><span>没有用</span><code>/</code><span>闭合，导致可以穿越至上层目录。</span></p><p><strong><span>利用</span></strong></p><pre spellcheck="false" class="md-fences md-end-block ty-contain-cm modeLoaded" lang=""><div class="CodeMirror cm-s-inner CodeMirror-wrap" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 0px; left: 8px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"><pre><span>xxxxxxxxxx</span></pre></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation"><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;">http://x.x.x.x:8081/file../../../../../../../<span class="cm-tab" role="presentation" cm-text="	">   </span>超过6个回到根目录</span></pre></div></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 23px;"></div><div class="CodeMirror-gutters" style="display: none; height: 23px;"></div></div></div></pre><p><strong><span>修复</span></strong></p><p><img src='assets/3-21.png' alt='1563695208990' referrerPolicy='no-referrer' /></p><h3><a name="3.3-%E8%A7%A3%E6%9E%90%E6%BC%8F%E6%B4%9E" class="md-header-anchor"></a><span>3.3 解析漏洞</span></h3><p><strong><span>介绍</span></strong></p><p><span>	</span><span>在用户访问</span><code>http://127.0.0.1/favicon.ico/.php</code><span>时，访问到的文件是favicon.ico，但却按照</span><code>.php</code><span>后缀解析了。</span></p><p><strong><span>复现</span></strong></p><ul><li><span>路径：</span><code>vulhub/master/nginx_parsing_vulnerability</code></li></ul><p><strong><span>修复</span></strong></p><ul><li><span>在Nginx端使用</span><code>fastcgi_split_path_info</code><span>将path info信息去除后，用</span><code>tryfiles</code><span>判断文件是否存在；</span></li><li><span>借助PHP-FPM的</span><code>security.limit_extensions</code><span>配置项，避免其他后缀文件被解析。</span></li><li><code>/etc/php5/fpm/pool.d/[www.conf](http://www.conf/)</code><span>中</span><code>security.limit_ectensions</code><span>后面的值设为</span><code>.php</code></li></ul><h2><a name="4-tomcat" class="md-header-anchor"></a><span>4 Tomcat</span></h2><p><span>	</span><span>Tomcat是一个免费的开放源代码的Web 应用服务器，属于轻量级应用服务器，在中小型系统和并发访问用户不是很多的场合下被普遍使用，是开发和调试JSP 程序的首选。</span></p><p><span>	</span><span>对于一个初学者来说，可以这样认为，当在一台机器上配置好Apache 服务器，可利用它响应 HTML （ 标准通用标记语言下的一个应用）页面的访问请求。实际上Tomcat是Apache 服务器的扩展，但运行时它是独立运行的，所以当运行tomcat 时，它实际上作为一个与Apache 独立的进程单独运行的。</span></p><h3><a name="4.1-%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C" class="md-header-anchor"></a><span>4.1 远程代码执行</span></h3><p><strong><span>成因</span></strong></p><p><span>	</span><span>Tomcat 运行在Windows 主机上，且启用了 HTTP PUT 请求方法，可通过构造的攻击请求向服务器上传包含任意代码的 JSP 文件，造成任意代码执行。</span></p><p><span>	</span><span>影响版本： Apache Tomcat 7.0.0 – 7.0.81</span></p><p><strong><span>复现</span></strong></p><ol start='' ><li><span>配置漏洞，开启put方法可上传文件功能。tomcat文件夹下的</span><code>/conf/web.xml</code><span>文件插入：</span></li></ol><pre spellcheck="false" class="md-fences md-end-block ty-contain-cm modeLoaded" lang=""><div class="CodeMirror cm-s-inner CodeMirror-wrap" lang=""><div style="overflow: hidden; position: relative; width: 3px; height: 0px; top: 0px; left: 8px;"><textarea autocorrect="off" autocapitalize="off" spellcheck="false" tabindex="0" style="position: absolute; bottom: -1em; padding: 0px; width: 1000px; height: 1em; outline: none;"></textarea></div><div class="CodeMirror-scrollbar-filler" cm-not-content="true"></div><div class="CodeMirror-gutter-filler" cm-not-content="true"></div><div class="CodeMirror-scroll" tabindex="-1"><div class="CodeMirror-sizer" style="margin-left: 0px; margin-bottom: 0px; border-right-width: 0px; padding-right: 0px; padding-bottom: 0px;"><div style="position: relative; top: 0px;"><div class="CodeMirror-lines" role="presentation"><div role="presentation" style="position: relative; outline: none;"><div class="CodeMirror-measure"><pre><span>xxxxxxxxxx</span></pre></div><div class="CodeMirror-measure"></div><div style="position: relative; z-index: 1;"></div><div class="CodeMirror-code" role="presentation" style=""><div class="CodeMirror-activeline" style="position: relative;"><div class="CodeMirror-activeline-background CodeMirror-linebackground"></div><div class="CodeMirror-gutter-background CodeMirror-activeline-gutter" style="left: 0px; width: 0px;"></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp; &lt;init-param&gt;</span></pre></div><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp; &nbsp; &nbsp;</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;param-name&gt;readonly&lt;/param-name&gt;</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp; &nbsp; &nbsp;</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &lt;param-value&gt;false&lt;/param-value&gt;</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp;</span></pre><pre class=" CodeMirror-line " role="presentation"><span role="presentation" style="padding-right: 0.1px;"> &nbsp; &nbsp; &lt;/init-param&gt;</span></pre></div></div></div></div></div><div style="position: absolute; height: 0px; width: 1px; border-bottom: 0px solid transparent; top: 161px;"></div><div class="CodeMirror-gutters" style="display: none; height: 161px;"></div></div></div></pre><ol start='3' ><li><span>重启tomcat服务。</span></li></ol><p><img src='assets/4-21.png' alt='img' referrerPolicy='no-referrer' /></p><ol start='4' ><li><span>访问127.0.0.1：8080，burp抓包，send to Repeater，将请求方式改为PUT，创建一个122.jsp，并用%20转义空格字符。123.jsp内容为：</span><code>&lt;%Runtime.getRuntime().exec(request.getParameter(&quot;cmd&quot;));%&gt;</code>
+<span>返回201，说明创建成功。</span></li></ol><p><img src='assets/4-22.png' alt='img' referrerPolicy='no-referrer' /></p><ol start='5' ><li><span>访问</span><code>127.0.0.1：8080/122.jsp?cmd=calc</code><span>，弹出计算器</span></li></ol><p><strong><span>修复</span></strong></p><ul><li><span>检测当前版本是否在影响范围内，并禁用PUT方法。</span></li><li><span>更新并升级至最新版。</span></li></ul><h3><a name="4.2-war%E5%90%8E%E9%97%A8%E6%96%87%E4%BB%B6%E9%83%A8%E7%BD%B2" class="md-header-anchor"></a><span>4.2 war后门文件部署</span></h3><p><strong><span>成因</span></strong></p><p><span>	</span><span>Tomcat 支持在后台部署war文件，可以直接将</span><code>webshell</code><span>部署到web目录下。</span></p><p><span>	</span><span>若后台管理页面存在弱口令，则可以通过爆破获取密码。</span></p><p><strong><span>修复</span></strong></p><ul><li><span>在系统上以低权限运行Tomcat应用程序。创建一个专门的 Tomcat服务用户，该用户只能拥有一组最小权限（例如不允许远程登录）。</span></li><li><span>增加对于本地和基于证书的身份验证，部署账户锁定机制（对于集中式认证，目录服务也要做相应配置）。在</span><code>CATALINA_HOME/conf/web.xml</code><span>文件设置锁定机制和时间超时限制。</span></li><li><span>以及针对</span><code>manager-gui/manager-status/manager-script</code><span>等目录页面设置最小权限访问限制。</span></li><li><span>后台管理避免弱口令。</span></li></ul><h2><a name="5-weblogic" class="md-header-anchor"></a><span>5 WebLogic</span></h2><p><span>	</span><span>WebLogic是美国Oracle公司出品的一个application server，确切的说是一个基于JAVAEE架构的中间件，WebLogic是用于开发、集成、部署和管理大型分布式Web应用、网络应用和数据库应用的Java应用服务器。将Java的动态功能和Java Enterprise标准的安全性引入大型网络应用的开发、集成、部署和管理之中。</span></p><h3><a name="5.1%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%E6%BC%8F%E6%B4%9E" class="md-header-anchor"></a><span>5.1反序列化漏洞</span></h3><p><strong><span>成因</span></strong></p><p><span>	</span><span>Java序列化，简而言之就是把java对象转化为字节序列的过程。而反序列话则是再把字节序列恢复为java对象的过程，然而就在这一转一变得过程中，程序员的过滤不严格，就可以导致恶意构造的代码的实现。</span></p><p><strong><span>复现</span></strong></p><ul><li><span>路径：</span><code>vulhub-master/weblogic/CVE-2017-10271</code></li></ul><p><img src='assets/5-11.png' alt='img' referrerPolicy='no-referrer' /></p><ul><li><span>Kali启动监听。发送数据包成功后，拿到shell。</span></li></ul><p><strong><span>修复</span></strong></p><ul><li><span>升级Oracle 10月份补丁。</span></li><li><span>对访问</span><code>wls-wsat</code><span>的资源进行访问控制。</span></li></ul><h3><a name="5.2-ssrf" class="md-header-anchor"></a><span>5.2 SSRF</span></h3><p><strong><span>成因</span></strong></p><p><span>	</span><span>WebLogic 中存在一个SSRF漏洞，利用该漏洞可以发送任意HTTP请求，进而攻击内网中</span><code>redis、Fastcgi</code><span>等脆弱组件。</span></p><p><strong><span>复现</span></strong></p><ul><li><span>路径：</span><code>vulhub-master/weblogic/SSRF</code></li></ul><p><strong><span>修复</span></strong></p><ul><li><p><span>以修复的直接方法是将</span><code>SearchPublicRegistries.jsp</code><span>直接删除就好了；</span></p></li><li><p><span>删除</span><code>uddiexplorer</code><span>文件夹</span></p><p><span>限制</span><code>uddiexplorer</code><span>应用只能内网访问</span></p></li><li><p><span>WebLogic服务端请求伪造漏洞出现在</span><code>uddi</code><span>组件（所以安装</span><code>Weblogic</code><span>时如果没有选择</span><code>uddi</code><span>组件那么就不会有该漏洞），更准确地说是</span><code>uudi</code><span>包实现包</span><code>uddiexplorer.war</code><span>下的</span><code>SearchPublicRegistries.jsp</code><span>。方法二采用的是改后辍的方式，修复步骤如下：</span></p><p><span>将</span><code>weblogic</code><span>安装目录下的</span><code>wlserver_10.3/server/lib/uddiexplorer.war</code><span>做好备份</span></p><p><span>将</span><code>weblogic</code><span>安装目录下的</span><code>server/lib/uddiexplorer.war</code><span>下载</span></p><p><span>用</span><code>winrar</code><span>等工具打开</span><code>uddiexplorer.war</code></p><p><span>将其下的</span><code>SearchPublicRegistries.jsp</code><span>重命名为</span><code>SearchPublicRegistries.jspx</code></p><p><span>保存后上传回服务端替换原先的</span><code>uddiexplorer.war</code></p><p><span>对于多台主机组成的集群，针对每台主机都要做这样的操作</span></p><p><span>由于每个server的</span><code>tmp</code><span>目录下都有缓存所以修改后要彻底重启</span><code>weblogic</code><span>（即停应用–停server–停控制台–启控制台–启server–启应用）</span></p></li></ul><h2><a name="6-%E5%85%B6%E5%AE%83" class="md-header-anchor"></a><span>6 其它</span></h2><h3><a name="6.1-fastcgi%E6%9C%AA%E6%8E%88%E6%9D%83%E8%AE%BF%E9%97%AE%E3%80%81%E4%BB%BB%E6%84%8F%E5%91%BD%E4%BB%A4%E6%89%A7%E8%A1%8C" class="md-header-anchor"></a><span>6.1 FastCGI未授权访问、任意命令执行</span></h3><p><strong><span>成因</span></strong></p><p><span>	</span><code>Fastcgi</code><span>其实是一个通信协议，和HTTP协议一样，都是进行数据交换的一个通道。</span></p><p><span>	</span><span>HTTP协议是浏览器和服务器中间件进行数据交换的协议，浏览器将HTTP头和HTTP体用某个规则组装成数据包，以TCP的方式发送到服务器中间件，服务器中间件按照规则将数据包解码，并按要求拿到用户需要的数据，再以HTTP协议的规则打包返回给服务器。</span></p><p><span>	</span><span>服务端使用</span><code>fastcgi</code><span>协议并对外网开放9000端口，可以构造</span><code>fastcgi</code><span>协议包内容，实现未授权访问服务端</span><code>.php</code><span>文件以及执行任意命令。</span></p><p><span>	</span><span>FPM其实是一个</span><code>fastcgi</code><span>协议解析器，Nginx等服务器中间件将用户请求按照fastcgi的规则打包好通过TCP传给谁？其实就是传给FPM。</span></p><p><span>	</span><span>FPM按照</span><code>fastcgi</code><span>的协议将TCP流解析成真正的数据。</span></p><h3><a name="6.2-phpcgi%E8%BF%9C%E7%A8%8B%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C" class="md-header-anchor"></a><span>6.2 PHPCGI远程代码执行</span></h3><p><strong><span>成因</span></strong></p><p><span>	</span><span>在apache调用</span><code>php</code><span>解释器解释</span><code>.php</code><span>文件时，会将</span><code>url</code><span>参数传给</span><code>php</code><span>解释器。</span></p><p><span>	</span><span>如果在</span><code>url</code><span>后加传命令行开关（例如-s、-d 、-c或</span><code>-dauto_prepend_file%3d/etc/passwd+-n）</code><span>等参数时，会导致源代码泄露和任意代码执行。</span></p><p><span>	</span><span>此漏洞影响</span><code>php-5.3.12</code><span>以前的版本，mod方式、fpm方式不受影响。</span></p><p><strong><span>复现</span></strong></p><blockquote><p><span>路径：</span><code>vulhub-master/php/CVE-2012-1823</code></p></blockquote><ul><li><span>环境启动后，访问</span><code>http://your-ip:8080/</code><span>可见“Hello”字样。</span></li></ul><ul><li><span>访问</span><code>http://your-ip:8080/index.php?-s</code><span>即爆出源码，说明漏洞存在。</span></li></ul><p><strong><span>修复</span></strong></p><ul><li><span>升级</span><code>php</code><span>版本</span></li></ul><h2><a name="%E6%84%9F%E8%B0%A2" class="md-header-anchor"></a><span>感谢</span></h2><p><span>FreeBuf：</span><a href='https://www.freebuf.com/articles/web/192063.html' target='_blank' class='url'>https://www.freebuf.com/articles/web/192063.html</a><span> </span></p><p><span>IIS短文件名漏洞：</span><a href='https://www.cnblogs.com/peterpan0707007/p/8529918.html' target='_blank' class='url'>https://www.cnblogs.com/peterpan0707007/p/8529918.html</a></p><p><span>IIS-WebDAV：</span><a href='https://www.cnblogs.com/str0ng/articles/3200946.html' target='_blank' class='url'>https://www.cnblogs.com/str0ng/articles/3200946.html</a></p><p><a href='https://www.cnblogs.com/tdcqma/p/6125789.html' target='_blank' class='url'>https://www.cnblogs.com/tdcqma/p/6125789.html</a></p><p><span>CRLF注入：</span><a href='https://www.leavesongs.com/PENETRATION/bottle-crlf-cve-2016-9964.html' target='_blank' class='url'>https://www.leavesongs.com/PENETRATION/bottle-crlf-cve-2016-9964.html</a><span> </span></p><p><a href='https://www.leavesongs.com/PENETRATION/Sina-CRLF-Injection.html' target='_blank' class='url'>https://www.leavesongs.com/PENETRATION/Sina-CRLF-Injection.html</a></p><p><span>FastCGI：</span><a href='https://www.leavesongs.com/PENETRATION/fastcgi-and-php-fpm.html' target='_blank' class='url'>https://www.leavesongs.com/PENETRATION/fastcgi-and-php-fpm.html</a></p><p><span>PHPCGI：</span><a href='https://www.leavesongs.com/PENETRATION/php-cgi-cve-2012-1823.html' target='_blank' class='url'>https://www.leavesongs.com/PENETRATION/php-cgi-cve-2012-1823.html</a></p><p><span>测试平台：</span><a href='https://vulhub.org/' target='_blank' class='url'>https://vulhub.org/</a></p><p><strong><span>仅交流学习，侵删</span></strong></p></div>
+</body>
+</html>
